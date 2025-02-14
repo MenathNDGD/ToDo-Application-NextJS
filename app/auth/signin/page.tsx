@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +14,6 @@ import {
 import Link from "next/link";
 
 export default function SignIn() {
-  const router = useRouter();
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -26,14 +24,12 @@ export default function SignIn() {
       const res = await signIn("credentials", {
         email: formData.get("email"),
         password: formData.get("password"),
-        redirect: false,
+        redirect: true,
+        callbackUrl: "/dashboard",
       });
 
       if (res?.error) {
         setError("Invalid credentials");
-      } else {
-        router.push("/dashboard");
-        router.refresh();
       }
     } catch (error) {
       console.error("An error occurred:", error);
