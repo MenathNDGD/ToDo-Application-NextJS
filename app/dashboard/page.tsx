@@ -185,9 +185,7 @@ export default function Dashboard() {
               <Button
                 type="submit"
                 className="flex-shrink-0"
-                disabled={
-                  !newTask.title || !newTask.description || !newTask.dueDate
-                }
+                disabled={!newTask.title || !newTask.dueDate}
                 onClick={() => {
                   toast({
                     title: "Task added!",
