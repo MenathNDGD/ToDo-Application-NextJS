@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ListTodo, LogIn, UserPlus } from "lucide-react";
+import { List, Calendar, Lock, ListTodo, LogIn, UserPlus } from "lucide-react";
 
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,7 +62,7 @@ export default function Home() {
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mb-4">
-                  <CheckCircle2 className="h-6 w-6" />
+                  <List className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">
                   Task Management
@@ -74,7 +74,7 @@ export default function Home() {
 
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mb-4">
-                  <CheckCircle2 className="h-6 w-6" />
+                  <Calendar className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">Due Dates</h3>
                 <p className="mt-2 text-base text-gray-500">
@@ -84,7 +84,7 @@ export default function Home() {
 
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mb-4">
-                  <CheckCircle2 className="h-6 w-6" />
+                  <Lock className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">
                   Secure Access
