@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Trash2, PlusCircle } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Trash2,
+  PlusCircle,
+  Edit,
+} from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,13 +23,24 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Task {
   id: string;
   title: string;
   description?: string;
   completed: boolean;
-  dueDate?: string;
+  dueDate?: string | null;
 }
 
 export default function Dashboard() {
@@ -115,6 +131,28 @@ export default function Dashboard() {
     }
   };
 
+  const handleEditTask = async (e: React.FormEvent, taskId: string) => {
+    e.preventDefault();
+    const taskToUpdate = tasks.find((task) => task.id === taskId);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskToUpdate),
+      });
+
+      if (!res.ok) throw new Error("Failed to update task");
+
+      toast({
+        title: "Task updated!",
+        description: "Your task has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
   const handleDeleteTask = async (taskId: string) => {
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
@@ -156,7 +194,7 @@ export default function Dashboard() {
                 setNewTask({ ...newTask, description: e.target.value })
               }
             />
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between space-x-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -199,25 +237,34 @@ export default function Dashboard() {
             </div>
           </form>
         </div>
-
-        <ScrollArea className="h-[500px] w-[896px] rounded-md border p-4">
+        <ScrollArea className="h-[480px] w-[896px] rounded-md border p-4">
           <div className="space-y-4">
             {tasks.map((task) => (
               <Card key={task.id}>
-                <CardContent className="p-4 flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
-                    <Checkbox
-                      checked={task.completed}
-                      onCheckedChange={(checked) =>
-                        handleToggleComplete(task.id, checked as boolean)
-                      }
-                      onClick={() => {
-                        toast({
-                          title: "Task completed!",
-                          description: "Great job on completing your task! 🎉",
-                        });
-                      }}
-                    />
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center h-full">
+                      <Checkbox
+                        checked={task.completed}
+                        onCheckedChange={(checked) => {
+                          handleToggleComplete(task.id, checked as boolean);
+                          if (checked) {
+                            toast({
+                              title: "Task completed!",
+                              description:
+                                "Great job on completing your task! 🎉",
+                            });
+                          } else {
+                            toast({
+                              title: "Task marked as incomplete!",
+                              description:
+                                "Don't worry, you can always get back to it! 🚀",
+                            });
+                          }
+                        }}
+                      />
+                    </div>
+
                     <div>
                       <h3
                         className={`font-medium ${
@@ -238,20 +285,142 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      handleDeleteTask(task.id);
-                      toast({
-                        title: "Task deleted!",
-                        description: "Your task has been deleted successfully.",
-                      });
-                    }}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex space-x-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this task? This
+                            action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              handleDeleteTask(task.id);
+                              toast({
+                                title: "Task deleted!",
+                                description:
+                                  "Your task has been deleted successfully.",
+                              });
+                            }}
+                          >
+                            Confirm
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-700 hover:text-gray-900"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Edit Task</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Make changes to your task below.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <form
+                          onSubmit={(e) => handleEditTask(e, task.id)}
+                          className="space-y-4"
+                        >
+                          <Input
+                            placeholder="Task title"
+                            value={task.title}
+                            onChange={(e) =>
+                              setTasks(
+                                tasks.map((t) =>
+                                  t.id === task.id
+                                    ? { ...t, title: e.target.value }
+                                    : t
+                                )
+                              )
+                            }
+                            required
+                          />
+                          <Textarea
+                            placeholder="Task description (optional)"
+                            value={task.description}
+                            onChange={(e) =>
+                              setTasks(
+                                tasks.map((t) =>
+                                  t.id === task.id
+                                    ? { ...t, description: e.target.value }
+                                    : t
+                                )
+                              )
+                            }
+                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal"
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {task.dueDate ? (
+                                  format(new Date(task.dueDate), "PPP")
+                                ) : (
+                                  <span>Pick a due date</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <Calendar
+                                mode="single"
+                                selected={
+                                  task.dueDate
+                                    ? new Date(task.dueDate)
+                                    : undefined
+                                }
+                                onSelect={(date) =>
+                                  setTasks(
+                                    tasks.map((t) =>
+                                      t.id === task.id
+                                        ? {
+                                            ...t,
+                                            dueDate:
+                                              date?.toISOString() || null,
+                                          }
+                                        : t
+                                    )
+                                  )
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction type="submit">
+                              Save
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </form>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </CardContent>
               </Card>
             ))}
