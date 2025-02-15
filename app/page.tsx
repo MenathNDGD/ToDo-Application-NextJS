@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ListTodo } from "lucide-react";
+import { CheckCircle2, ListTodo, LogIn, UserPlus } from "lucide-react";
 
 export default function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -43,10 +44,16 @@ export default function Home() {
             </p>
             <div className="mt-10 flex justify-center gap-4">
               <Button asChild size="lg">
-                <Link href="/auth/signin">Sign In</Link>
+                <Link href="/auth/signin" className="flex items-center">
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Sign In
+                </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/auth/signup">Sign Up</Link>
+                <Link href="/auth/signup" className="flex items-center">
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Sign Up
+                </Link>
               </Button>
             </div>
           </div>
