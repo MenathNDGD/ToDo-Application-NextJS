@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import {
   Calendar as CalendarIcon,
   Trash2,
@@ -239,194 +239,208 @@ export default function Dashboard() {
         </div>
         <ScrollArea className="h-[480px] w-[896px] rounded-md border p-4">
           <div className="space-y-4">
-            {tasks.map((task) => (
-              <Card key={task.id}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center h-full">
-                      <Checkbox
-                        checked={task.completed}
-                        onCheckedChange={(checked) => {
-                          handleToggleComplete(task.id, checked as boolean);
-                          if (checked) {
-                            toast({
-                              title: "Task completed!",
-                              description:
-                                "Great job on completing your task! 🎉",
-                            });
-                          } else {
-                            toast({
-                              title: "Task marked as incomplete!",
-                              description:
-                                "Don't worry, you can always get back to it! 🚀",
-                            });
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <h3
-                        className={`font-medium ${
-                          task.completed ? "line-through text-gray-500" : ""
-                        }`}
-                      >
-                        {task.title}
-                      </h3>
-                      {task.description && (
-                        <p className="text-sm text-gray-600 mt-1">
-                          {task.description}
-                        </p>
-                      )}
-                      {task.dueDate && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Due: {format(new Date(task.dueDate), "PPP")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this task? This
-                            action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => {
-                              handleDeleteTask(task.id);
+            {isLoading ? (
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              tasks.map((task) => (
+                <Card key={task.id}>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center h-full">
+                        <Checkbox
+                          checked={task.completed}
+                          onCheckedChange={(checked) => {
+                            handleToggleComplete(task.id, checked as boolean);
+                            if (checked) {
                               toast({
-                                title: "Task deleted!",
+                                title: "Task completed!",
                                 description:
-                                  "Your task has been deleted successfully.",
+                                  "Great job on completing your task! 🎉",
                               });
-                            }}
+                            } else {
+                              toast({
+                                title: "Task marked as incomplete!",
+                                description:
+                                  "Don't worry, you can always get back to it! 🚀",
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <h3
+                          className={`font-medium ${
+                            task.completed ? "line-through text-gray-500" : ""
+                          }`}
+                        >
+                          {task.title}
+                        </h3>
+                        {task.description && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {task.description}
+                          </p>
+                        )}
+                        {task.dueDate && (
+                          <div className="text-sm text-gray-500 mt-1">
+                            Due: {format(new Date(task.dueDate), "PPP")}
+                            <p className="text-sm text-gray-500 mt-1">
+                              {task.dueDate
+                                ? `Remaining: ${formatDistanceToNow(
+                                    new Date(task.dueDate),
+                                    { addSuffix: false }
+                                  )}`
+                                : ""}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-700"
                           >
-                            Confirm
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-gray-700 hover:text-gray-900"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Edit Task</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Make changes to your task below.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <form
-                          onSubmit={(e) => handleEditTask(e, task.id)}
-                          className="space-y-4"
-                        >
-                          <Input
-                            placeholder="Task title"
-                            value={task.title}
-                            onChange={(e) =>
-                              setTasks(
-                                tasks.map((t) =>
-                                  t.id === task.id
-                                    ? { ...t, title: e.target.value }
-                                    : t
-                                )
-                              )
-                            }
-                            required
-                          />
-                          <Textarea
-                            placeholder="Task description (optional)"
-                            value={task.description}
-                            onChange={(e) =>
-                              setTasks(
-                                tasks.map((t) =>
-                                  t.id === task.id
-                                    ? { ...t, description: e.target.value }
-                                    : t
-                                )
-                              )
-                            }
-                          />
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-start text-left font-normal"
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {task.dueDate ? (
-                                  format(new Date(task.dueDate), "PPP")
-                                ) : (
-                                  <span>Pick a due date</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
-                              align="start"
-                            >
-                              <Calendar
-                                mode="single"
-                                selected={
-                                  task.dueDate
-                                    ? new Date(task.dueDate)
-                                    : undefined
-                                }
-                                onSelect={(date) =>
-                                  setTasks(
-                                    tasks.map((t) =>
-                                      t.id === task.id
-                                        ? {
-                                            ...t,
-                                            dueDate:
-                                              date?.toISOString() || null,
-                                          }
-                                        : t
-                                    )
-                                  )
-                                }
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this task? This
+                              action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction type="submit">
-                              Save
+                            <AlertDialogAction
+                              onClick={() => {
+                                handleDeleteTask(task.id);
+                                toast({
+                                  title: "Task deleted!",
+                                  description:
+                                    "Your task has been deleted successfully.",
+                                });
+                              }}
+                            >
+                              Confirm
                             </AlertDialogAction>
                           </AlertDialogFooter>
-                        </form>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-gray-700 hover:text-gray-900"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Edit Task</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Make changes to your task below.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <form
+                            onSubmit={(e) => handleEditTask(e, task.id)}
+                            className="space-y-4"
+                          >
+                            <Input
+                              placeholder="Task title"
+                              value={task.title}
+                              onChange={(e) =>
+                                setTasks(
+                                  tasks.map((t) =>
+                                    t.id === task.id
+                                      ? { ...t, title: e.target.value }
+                                      : t
+                                  )
+                                )
+                              }
+                              required
+                            />
+                            <Textarea
+                              placeholder="Task description (optional)"
+                              value={task.description}
+                              onChange={(e) =>
+                                setTasks(
+                                  tasks.map((t) =>
+                                    t.id === task.id
+                                      ? { ...t, description: e.target.value }
+                                      : t
+                                  )
+                                )
+                              }
+                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start text-left font-normal"
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {task.dueDate ? (
+                                    format(new Date(task.dueDate), "PPP")
+                                  ) : (
+                                    <span>Pick a due date</span>
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-auto p-0"
+                                align="start"
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={
+                                    task.dueDate
+                                      ? new Date(task.dueDate)
+                                      : undefined
+                                  }
+                                  onSelect={(date) =>
+                                    setTasks(
+                                      tasks.map((t) =>
+                                        t.id === task.id
+                                          ? {
+                                              ...t,
+                                              dueDate:
+                                                date?.toISOString() || null,
+                                            }
+                                          : t
+                                      )
+                                    )
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction type="submit">
+                                Save
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </form>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
             {tasks.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">
+                <p className="text-gray-500 text-lg">
                   No tasks yet. Create one to get started!
                 </p>
               </div>
