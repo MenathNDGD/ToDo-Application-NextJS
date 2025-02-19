@@ -250,7 +250,7 @@ export default function Dashboard() {
                   key={task.id}
                   className={`transition-all duration-300 ${
                     task.completed
-                      ? "bg-gray-100 border-l-4 border-green-500 opacity-70"
+                      ? "bg-gray-100 border-l-4 border-blue-500 opacity-70"
                       : "bg-white"
                   }`}
                 >
