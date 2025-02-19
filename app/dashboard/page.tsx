@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, isBefore, startOfDay } from "date-fns";
 import {
   Calendar as CalendarIcon,
   Trash2,
@@ -216,6 +216,7 @@ export default function Dashboard() {
                     onSelect={(date) =>
                       setNewTask({ ...newTask, dueDate: date || null })
                     }
+                    disabled={{ before: startOfDay(new Date()) }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -245,7 +246,14 @@ export default function Dashboard() {
               </div>
             ) : (
               tasks.map((task) => (
-                <Card key={task.id}>
+                <Card
+                  key={task.id}
+                  className={`transition-all duration-300 ${
+                    task.completed
+                      ? "bg-gray-100 border-l-4 border-green-500 opacity-70"
+                      : "bg-white"
+                  }`}
+                >
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center h-full">
@@ -285,14 +293,21 @@ export default function Dashboard() {
                         )}
                         {task.dueDate && (
                           <div className="text-sm text-gray-500 mt-1">
-                            Due: {format(new Date(task.dueDate), "PPP")}
+                            <span>
+                              Due: {format(new Date(task.dueDate), "PPP")}
+                            </span>
                             <p className="text-sm text-gray-500 mt-1">
-                              {task.dueDate
-                                ? `Remaining: ${formatDistanceToNow(
+                              {isBefore(
+                                startOfDay(new Date(task.dueDate)),
+                                startOfDay(new Date())
+                              )
+                                ? "Overdue"
+                                : `Remaining: ${formatDistanceToNow(
                                     new Date(task.dueDate),
-                                    { addSuffix: false }
-                                  )}`
-                                : ""}
+                                    {
+                                      addSuffix: false,
+                                    }
+                                  )}`}
                             </p>
                           </div>
                         )}
@@ -407,7 +422,18 @@ export default function Dashboard() {
                                       ? new Date(task.dueDate)
                                       : undefined
                                   }
-                                  onSelect={(date) =>
+                                  onSelect={(date) => {
+                                    if (
+                                      date &&
+                                      isBefore(
+                                        startOfDay(date),
+                                        startOfDay(new Date())
+                                      )
+                                    ) {
+                                      alert("You cannot select a past date.");
+                                      return;
+                                    }
+
                                     setTasks(
                                       tasks.map((t) =>
                                         t.id === task.id
@@ -418,8 +444,9 @@ export default function Dashboard() {
                                             }
                                           : t
                                       )
-                                    )
-                                  }
+                                    );
+                                  }}
+                                  disabled={{ before: startOfDay(new Date()) }}
                                   initialFocus
                                 />
                               </PopoverContent>
